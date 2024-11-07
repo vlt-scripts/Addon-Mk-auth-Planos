@@ -2,334 +2,443 @@
 // INCLUE FUNCOES DE ADDONS -----------------------------------------------------------------------
 include('addons.class.php');
 
-// VERIFICA SE O USUARIO ESTA LOGADO --------------------------------------------------------------
+// Verifica se o usuário está logado
 session_name('mka');
 if (!isset($_SESSION)) session_start();
-if (!isset($_SESSION['MKA_Logado'])) exit('Acesso negado... <a href="/admin/">Fazer Login</a>');
-// VERIFICA SE O USUARIO ESTA LOGADO --------------------------------------------------------------
+if (!isset($_SESSION['mka_logado']) && !isset($_SESSION['MKA_Logado'])) exit('Acesso negado... <a href="/admin/login.php">Fazer Login</a>');
 
-// Assuming $Manifest is defined somewhere before this code
-$manifestTitle = isset($Manifest->{'name'}) ? $Manifest->{'name'} : '';
-$manifestVersion = isset($Manifest->{'version'}) ? $Manifest->{'version'} : '';
+// Variáveis do Manifesto
+$manifestTitle = isset($Manifest->name) ? htmlspecialchars($Manifest->name) : '';
+$manifestVersion = isset($Manifest->version) ? htmlspecialchars($Manifest->version) : '';
 ?>
 
 <!DOCTYPE html>
-<?php
-if (isset($_SESSION['MM_Usuario'])) {
-    echo '<html lang="pt-BR">'; // Fix versão antiga MK-AUTH
-} else {
-    echo '<html lang="pt-BR" class="has-navbar-fixed-top">';
-}
-?>
-<html lang="pt-BR">
-
+<html lang="pt-BR" class="has-navbar-fixed-top">
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta charset="utf-8">
-    <title>MK - AUTH :: <?php echo $Manifest->{'name'} . " - V " . $Manifest->{'version'};  ?></title>
+    <title>MK - AUTH :: <?php echo $Manifest->{'name'} . " - V " . $Manifest->{'version'}; ?></title>
 
+    <!-- CSS Files -->
     <link href="../../estilos/mk-auth.css" rel="stylesheet" type="text/css" />
     <link href="../../estilos/font-awesome.css" rel="stylesheet" type="text/css" />
-
-    <script src="../../scripts/jquery.js"></script>
-    <script src="../../scripts/mk-auth.js"></script>
     <link href="../../estilos/bi-icons.css" rel="stylesheet" type="text/css" />
     <link href="css/bootstrap.css" rel="stylesheet" type="text/css" />
-    <link href="css/css.css" rel="stylesheet" type="text/css" />
 
-    <style type="text/css">
-        /* Estilos CSS personalizados */
+    <!-- JavaScript Files -->
+    <script src="../../scripts/jquery.js"></script>
+    <script src="../../scripts/mk-auth.js"></script>
+
+    <style>
+        :root {
+            --primary-color: #0d6cea;
+            --secondary-color: #4caf50;
+            --danger-color: #f44336;
+            --text-color: #333;
+            --border-color: #e0e0e0;
+            --hover-color: #f5f5f5;
+            --success-color: #28a745;
+            --warning-color: #da6a28;
+        }
+
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #ffffff;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background-color: #f8f9fa;
+            color: var(--text-color);
+            line-height: 1.6;
             margin: 0;
             padding: 0;
-            color: #333;
         }
 
-        form,
-        .table-container,
-        .client-count-container {
-            width: 80%;
-            margin: 0 auto;
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 1rem;
         }
 
-        form {
+        .breadcrumb {
+            background: white;
+            padding: 1rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+
+        .breadcrumb ul {
+            list-style: none;
             display: flex;
-            flex-direction: column;
+            justify-content: center;
+            padding: 0;
+            margin: 0;
+        }
+
+        .breadcrumb li {
+            display: flex;
             align-items: center;
-            margin-bottom: 20px;
         }
 
-        label {
-            font-weight: bold;
-            margin-bottom: 5px;
+        .breadcrumb li:not(:last-child)::after {
+            content: "›";
+            margin: 0 0.5rem;
+            color: var(--text-color);
         }
 
-        input[type="text"],
-        input[type="submit"] {
+        .breadcrumb a {
+            color: var(--primary-color);
+            text-decoration: none;
+        }
+
+        .search-container {
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+
+        .search-form {
+            display: flex;
+            gap: 1rem;
+            align-items: flex-end;
+        }
+
+        .search-input-group {
+            flex: 1;
+        }
+
+        .search-input {
             width: 100%;
-            padding: 10px;
-            margin-bottom: 10px;
-            border: 1px solid #ccc;
+            padding: 0.75rem;
+            border: 2px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
         }
 
-        input[type="submit"] {
-            background-color: #4caf50;
-            color: white;
-            font-weight: bold;
+        .search-input:focus {
+            border-color: var(--primary-color);
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(13, 108, 234, 0.2);
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
             cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .btn:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+
+        .btn-search {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .btn-clear {
+            background-color: var(--danger-color);
+            color: white;
+        }
+
+        .table-wrapper {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            overflow: hidden;
+            margin-bottom: 2rem;
         }
 
         table {
             width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
+            border-collapse: separate;
+            border-spacing: 0;
         }
 
-        table th,
-        table td {
-            padding: 2px;
+        th {
+            background-color: var(--primary-color);
+            color: white !important;
+            font-weight: 600;
+            padding: 1rem;
             text-align: left;
+            position: sticky;
+            top: 0;
         }
 
-        table th {
-            background-color: #0d6cea;
-            color: white;
-            font-weight: bold;
-            text-align: center;
+        td {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border-color);
+            vertical-align: middle;
         }
 
-        h1 {
-            color: #4caf50;
+        tr:hover {
+            background-color: var(--hover-color);
         }
 
-        .client-count-container {
-            text-align: center;
-            margin-top: 10px;
+        .plan-cell {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
         }
 
-        .client-count {
-            color: #4caf50;
-            font-weight: bold;
+        .plan-icon {
+            width: 24px;
+            height: 24px;
+            flex-shrink: 0;
         }
 
-        .client-count.blue {
-            color: #2196F3;
+        .plan-name {
+            color: var(--primary-color);
+            font-weight: 600;
+            cursor: pointer;
+        }
+        td .plan-icon, td .value-icon, td .upload-icon, td .download-icon, td .alter-icon {
+        width: 20px;
+        height: 20px;
+        flex-shrink: 0;
+        }
+        /* Ajuste para os ícones nas células */
+        td img {
+        margin-right: 5px; /* Espaçamento entre o ícone e o texto */
+        vertical-align: middle;
+        }
+        /* Adiciona espaçamento e alinhamento correto para texto e ícones */
+        td span {
+        display: inline-block;
+        vertical-align: middle;
         }
 
-        .nome_cliente a {
-            color: blue;
+        .value-cell {
+            color: var(--primary-color);
+            font-weight: 600;
+        }
+
+        .speed-cell {
+            color: var(--warning-color);
+            font-weight: 600;
+        }
+
+        .action-cell a {
+            color: var(--primary-color);
             text-decoration: none;
-            font-weight: bold;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
 
-        .nome_cliente a:hover {
+        .action-cell a:hover {
             text-decoration: underline;
         }
 
-        .nome_cliente td {
-            border-bottom: 1px solid #ddd;
+        .stats-container {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
             text-align: center;
         }
 
-        .nome_cliente:nth-child(odd) {
-            background-color: #FFFF99;
+        .stats-number {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--primary-color);
         }
 
-        /* Adiciona uma classe para identificar as células do plano clicáveis */
-        .plan-name {
-            cursor: pointer;
-            color: blue;
-            font-weight: bold;
-        }
-		    /* Estilo para o botão Limpar */
-        .button-clear {
-        width: 100%;
-        padding: 10px;
-        margin-bottom: 10px;
-        border: 1px solid #ccc;
-        background-color: #f44336; /* Cor de fundo vermelha */
-        color: white;
-        font-weight: bold;
-        cursor: pointer;
+        @media (max-width: 768px) {
+            .search-form {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .btn {
+                width: 100%;
+            }
+
+            .table-wrapper {
+                overflow-x: auto;
+            }
+
+            th, td {
+            padding: 0.5rem;
+            text-align: center;
+            vertical-align: middle; /* Centraliza o conteúdo verticalmente */
+            position: relative;
+            }
+
+            .cell-with-icon {
+                flex-direction: column;
+                align-items: center;
+                text-align: center;
+                gap: 0.5rem;
+            }
+			
+
         }
     </style>
 
-<script type="text/javascript">
-    function clearSearch() {
-        // Limpa o campo de busca
-        document.getElementById('search').value = '';
+    <script>
+        function clearSearch() {
+            document.getElementById('search').value = '';
+            document.title = 'MK - AUTH';
+            document.forms['searchForm'].submit();
+        }
 
-        // Reseta o título do documento
-        document.title = 'MK - AUTH';
-
-        // Submete automaticamente o formulário
-        document.forms['searchForm'].submit();
-    }
-
-    document.addEventListener("DOMContentLoaded", function () {
-        // Adiciona um ouvinte de eventos de clique a todas as células na coluna "Plano"
-        var cells = document.querySelectorAll('.table-container tbody td.plan-name');
-        cells.forEach(function (cell) {
-            cell.addEventListener('click', function () {
-                // Obtém o valor do "Plano" clicado
-                var planName = this.innerText;
-
-                // Atualiza o campo de busca com o valor clicado
-                document.getElementById('search').value = planName;
-
-                // Adiciona o título específico ao painel
-                document.title = 'Painel: ' + planName;
-
-                // Submete automaticamente o formulário
-                document.forms['searchForm'].submit();
+        document.addEventListener("DOMContentLoaded", function() {
+            var cells = document.querySelectorAll('.plan-name');
+            cells.forEach(function(cell) {
+                cell.addEventListener('click', function() {
+                    var planName = this.innerText;
+                    document.getElementById('search').value = planName;
+                    document.title = 'Painel: ' + planName;
+                    document.forms['searchForm'].submit();
+                });
             });
         });
-    });
-</script>
-
-
+    </script>
 </head>
 
 <body>
     <?php include('../../topo.php'); ?>
 
-    <nav class="breadcrumb has-bullet-separator is-centered" aria-label="breadcrumbs">
+    <nav class="breadcrumb" aria-label="breadcrumbs">
         <ul>
-            <li><a href="#"> ADDON</a></li>
+            <li><a href="#">ADDON</a></li>
             <li class="is-active">
-                <a href="#" aria-current="page"> <?php echo htmlspecialchars($manifestTitle . " - V " . $manifestVersion); ?> </a>
+                <a href="#" aria-current="page"><?php echo htmlspecialchars($manifestTitle . " - V " . $manifestVersion); ?></a>
             </li>
         </ul>
     </nav>
 
     <?php include('config.php'); ?>
 
-    <?php
-    if ($acesso_permitido) {
-        // Formulário Atualizado com Funcionalidade de Busca
-        ?>
-<form id="searchForm" method="GET">
-    <div style="display: flex; justify-content: space-between; align-items: flex-end;">
-        <div style="width: 80%; margin-right: 10px;">
-            <label for="search" style="font-weight: bold; margin-bottom: 5px;">Buscar Plano:</label>
-            <input type="text" id="search" name="search" placeholder="Digite o Nome do Plano " value="<?php echo isset($_GET['search']) ? htmlspecialchars($_GET['search']) : ''; ?>" style="width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ccc;">
-        </div>
-        <div style="display: flex; align-items: flex-end; flex-direction: row;">
-            <input type="submit" value="Buscar" style="padding: 10px; border: 1px solid #ccc; background-color: #4caf50; color: white; font-weight: bold; cursor: pointer; border-radius: 5px;">
-            <button type="button" class="button-clear" onclick="clearSearch()" style="margin-left: 10px; padding: 10px; border: 1px solid #ccc; background-color: #f44336; color: white; font-weight: bold; cursor: pointer; border-radius: 5px;">Limpar</button>
-        </div>
-    </div>
-</form>
+    <?php if ($acesso_permitido): ?>
+        <div class="container">
+            <form id="searchForm" method="GET" class="search-container">
+                <div class="search-form">
+                    <div class="search-input-group">
+                        <label for="search" class="font-semibold mb-2 block">Buscar Plano:</label>
+                        <input type="text" 
+                               id="search" 
+                               name="search" 
+                               class="search-input"
+                               placeholder="Digite o Nome do Plano" 
+                               value="<?php echo isset($_GET['search']) ? htmlspecialchars($_GET['search']) : ''; ?>">
+                    </div>
+                    <button type="submit" class="btn btn-search">
+                        <i class="fa fa-search"></i> Buscar
+                    </button>
+                    <button type="button" class="btn btn-clear" onclick="clearSearch()">
+                        <i class="fa fa-times"></i> Limpar
+                    </button>
+                </div>
+            </form>
 
-        <div class="table-container">
-            <table style="border-collapse: collapse;">
+            <?php
+                $searchCondition = '';
+                $search = '';
+                
+                if (isset($_GET['search'])) {
+                    $search = '%' . mysqli_real_escape_string($link, $_GET['search']) . '%';
+                    $searchCondition = " AND (p.nome LIKE ? OR p.valor LIKE ?)";
+                }
+
+                $query = "SELECT p.uuid_plano, p.nome, p.valor, p.velup, p.veldown
+                          FROM sis_plano p
+                          WHERE p.oculto = 'nao'" 
+                          . $searchCondition .
+                          " ORDER BY p.valor DESC";
+
+                $stmt = mysqli_prepare($link, $query);
+
+                if (!empty($search)) {
+                    mysqli_stmt_bind_param($stmt, "ss", $search, $search);
+                }
+
+                mysqli_stmt_execute($stmt);
+                $result = mysqli_stmt_get_result($stmt);
+                $total_planos = mysqli_num_rows($result);
+            ?>
+
+            <div class="stats-container">
+                <div class="stats-number">
+                    <i class="fa fa-list"></i>
+                    Total de Planos: <?php echo $total_planos; ?>
+                </div>
+            </div>
+        </div>
+
+        <div class="table-wrapper">
+            <table>
                 <thead>
                     <tr>
-                        <th style="border: 2px solid #ddd;">Plano</th>
-                        <th style="border: 2px solid #ddd;">Valor</th>
-                        <th style="border: 2px solid #ddd;">Upload</th>
-                        <th style="border: 2px solid #ddd;">Download</th>
-						<th style="border: 2px solid #ddd;">Alterar Plano</th>
+                        <th>Plano</th>                  
+                        <th>Upload</th>
+                        <th>Download</th>
+                        <th>Valor</th>
+                        <th>Alterar Plano</th>
                     </tr>
                 </thead>
                 <tbody>
-        <?php
-        // Adicione a condição de busca, se houver
-        $searchCondition = '';
-        $search = '';
-        if (isset($_GET['search'])) {
-        $search = '%' . mysqli_real_escape_string($link, $_GET['search']) . '%';
-        $searchCondition = " AND (p.nome LIKE ? OR p.valor LIKE ?)";
-        }
-
-        $query = "SELECT p.uuid_plano, p.nome, p.valor, p.velup, p.veldown
-          FROM sis_plano p
-          WHERE p.oculto = 'nao'"
-        . $searchCondition .
-        " ORDER BY p.valor DESC";
-
-        $stmt = mysqli_prepare($link, $query);
-
-        if (!empty($search)) {
-        mysqli_stmt_bind_param($stmt, "ss", $search, $search);
-        }
-
-        mysqli_stmt_execute($stmt);
-        $result = mysqli_stmt_get_result($stmt);
-
-        // Resto do código para processar o resultado...
-
-        $total_boletos_ = 0; // Inicialize a variável de contagem
-
-        // Loop através dos resultados da consulta e exibir os dados na tabela
-        if ($result) {
-        $rowNumber = 0;
-        while ($row = mysqli_fetch_assoc($result)) {
-        $nome_por_num_titulo = "Nome do Cliente: " . $row['nome'];
-        $rowNumber++;
-
-        // Incrementar o contador de boletos
-        $total_boletos_++;
-
-        $nomeClienteClass = ($rowNumber % 2 == 0) ? 'nome_cliente' : 'nome_cliente highlight';
-
-        echo "<tr class='$nomeClienteClass'>";
-        // Plano 
-        echo "<td class='plan-name' style='border: 1px solid #ddd; position: relative;'>";
-        echo "<img src='img/plano.png' alt='Ícone de Nome' width='25' height='25' style='position: absolute; left: 0; top: 50%; transform: translateY(-50%);'> ";
-        echo "<span style='color: blue; font-weight: bold; cursor: pointer;'>" . $row['nome'] . "</span>";
-        echo "</td>";
-
-        // Valor
-        echo "<td style='text-align: center; color: #283fda; font-weight: bold; border: 1px solid #ddd; position: relative;'>";
-        echo "<img src='img/valor.png' alt='Ícone de Valor' width='20' height='20' style='position: absolute; left: 0; top: 50%; transform: translateY(-50%);'> ";
-        echo $row['valor'];
-        echo "</td>";
-
-        // Upload
-        echo "<td style='text-align: center; color: #da6a28; font-weight: bold; border: 1px solid #ddd; position: relative;'>";
-        echo "<img src='img/upload.png' alt='Ícone de Upload' width='20' height='20' style='position: absolute; left: 0; top: 50%; transform: translateY(-50%);'> ";
-        echo $row['velup'];
-        echo "</td>";
-
-        // Download
-        echo "<td style='text-align: center; color: #da6a28; font-weight: bold; border-left: 1px solid #ddd; position: relative;'>";
-        echo "<img src='img/download.png' alt='Ícone de Download' width='20' height='20' style='position: absolute; left: 0; top: 50%; transform: translateY(-50%);'> ";
-        echo $row['veldown'];
-        echo "</td>";
-
-        // Alterar Valor
-        echo "<td style='text-align: center; color: blue; font-weight: bold; border: 1px solid #ddd; position: relative;'>";
-        echo "<img src='img/alterar.png' alt='Ícone de Alterar' width='20' height='20' style='position: absolute; left: 0; top: 50%; transform: translateY(-50%);'> ";
-        echo "<a href='/admin/planos_alt.hhvm?uuid=" . $row['uuid_plano'] . "' style='color: blue; font-weight: bold; cursor: pointer;'>Alterar</a>";
-        echo "</td>";
-
-        echo "</tr>";
-    }
-} else {
-    echo "<tr><td colspan='4'>Erro na consulta: " . mysqli_error($link) . "</td></tr>";
-}
-
-// Exibe o total de boletos
-echo "<div style='text-align: center; font-weight: bold; color: blue;'>Total de Planos: " . $total_boletos_ . "</div>";
-
-                    ?>
+                    <?php if ($result): ?>
+                        <?php while ($row = mysqli_fetch_assoc($result)): ?>
+                            <tr>
+                                <!-- Plano -->
+                                <td class="cell-with-icon">
+                                    <img src="img/plano.png" alt="Ícone de Nome" class="plan-icon">
+                                    <span class="plan-name"><?php echo htmlspecialchars($row['nome']); ?></span>
+                                </td>
+                                
+                                <!-- Upload -->
+                                <td class="cell-with-icon speed-cell">
+                                    <img src="img/upload.png" alt="Ícone de Upload" class="plan-icon">
+                                    <span><?php echo htmlspecialchars($row['velup']); ?></span>
+                                </td>
+                                
+                                <!-- Download -->
+                                <td class="cell-with-icon speed-cell">
+                                    <img src="img/download.png" alt="Ícone de Download" class="plan-icon">
+                                    <span><?php echo htmlspecialchars($row['veldown']); ?></span>
+                                </td>
+                                
+                                <!-- Valor -->
+                                <td class="cell-with-icon value-cell">
+                                    <img src="img/valor.png" alt="Ícone de Valor" class="plan-icon">
+                                    <span><?php echo htmlspecialchars($row['valor']); ?></span>
+                                </td>
+                                
+                                <!-- Alterar Plano -->
+                                <td class="cell-with-icon action-cell">
+                                    <a href="/admin/planos_alt.hhvm?uuid=<?php echo $row['uuid_plano']; ?>">
+                                        <img src="img/alterar.png" alt="Ícone de Alterar" class="plan-icon">
+                                        Alterar
+                                    </a>
+                                </td>
+                            </tr>
+                        <?php endwhile; ?>
+                    <?php endif; ?>
                 </tbody>
             </table>
         </div>
 
-    <?php
-    } else {
-        echo "Acesso não permitido!";
-    }
-    ?>
+    <?php else: ?>
+        <div class="container">
+            <div class="alert alert-danger">
+                Acesso não permitido!
+            </div>
+        </div>
+    <?php endif; ?>
 
     <?php include('../../baixo.php'); ?>
-
     <script src="../../menu.js.php"></script>
     <?php include('../../rodape.php'); ?>
 </body>
-
 </html>
